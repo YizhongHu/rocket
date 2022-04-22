@@ -1,10 +1,14 @@
+from flask import Flask
+
 from dash import Dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
+
 import pandas as pd
 import numpy as np
+
 from timeloop import Timeloop
 from datetime import timedelta
 from threading import Lock
@@ -22,23 +26,36 @@ app.layout = html.Div([
         interval=1*1000,  # in milliseconds
         n_intervals=0
     ),
-    dcc.Graph(id="graph")
+    dcc.Graph(id="graph"),
+    dcc.Slider(min=0, max=0, step=1, id='time-slider', value=0, 
+               tooltip={"placement": "bottom", "always_visible": True})
 ])
 
 
-@app.callback(Output('graph', 'figure'),
+@app.callback(Output('time-slider', 'max'),
               Input('interval-component', 'n_intervals'))
-def update_s_state(n):
+def update_slider(n):
+    global df
+    lock.acquire()
+    max_time = int(df['time'].max())
+    lock.release()
+    return max_time
+
+
+@app.callback(Output('graph', 'figure'),
+              Input('time-slider', 'value'))
+def update_s_state(frame):
     global df
     lock.acquire()
     fig = px.scatter(
-        df, x="x", y="y", animation_frame="time",
+        df[df['time'] == frame], x="x", y="y",
         color="player", hover_name="player", size_max=10,
         range_x=[-2.5, 2.5], range_y=[-2.5, 2.5],
         width=800, height=800)
-    fig.update_traces()
+    # fig.layout['sliders'][0]['active'] = int(len(fig.frames) - 1)
     lock.release()
     return fig
+
 
 @tl.job(interval=timedelta(seconds=10))
 def update_game_state():

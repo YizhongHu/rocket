@@ -181,7 +181,8 @@ class Game(object):
         return {'end': True, 'winners': player_indices, 'ranks': self.ranks}
 
     def game_step(self):
-        thrust = self.thrust
+        thrust = np.copy(self.thrust)
+        self.modified = [False for _ in range(len(self.modified))]
 
         for _ in range(self.steps):
             self._diff_eq(self.state, thrust)

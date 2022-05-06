@@ -27,7 +27,7 @@ app.layout = html.Div([
         n_intervals=0
     ),
     dcc.Graph(id="graph"),
-    dcc.Slider(min=0, max=0, step=1, id='time-slider', value=0, 
+    dcc.Slider(min=0, max=0, step=1, id='time-slider', value=0,
                tooltip={"placement": "bottom", "always_visible": True})
 ])
 
@@ -57,7 +57,7 @@ def update_s_state(frame):
     return fig
 
 
-@tl.job(interval=timedelta(seconds=10))
+@tl.job(interval=timedelta(seconds=1))
 def update_game_state():
     global game, df, time, done, resp, lock
 
@@ -70,7 +70,6 @@ def update_game_state():
             'player': [resp["names"][state_index]]
         })])
         df.reset_index()
-    print(df)
     lock.release()
 
     res = game.game_step()
